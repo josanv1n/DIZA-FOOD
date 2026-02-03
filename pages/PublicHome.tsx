@@ -73,7 +73,8 @@ export const PublicHome: React.FC<Props> = ({ onLoginClick }) => {
         </div>
       </main>
 
-      <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur shrink-0">
+      {/* Added pb-12 to lift button up */}
+      <div className="p-4 pb-12 border-t border-white/10 bg-black/50 backdrop-blur shrink-0">
         <NeonButton onClick={onLoginClick} className="w-full">
           SYSTEM ACCESS (LOGIN)
         </NeonButton>

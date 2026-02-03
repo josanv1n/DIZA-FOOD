@@ -132,7 +132,8 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
         </div>
       </div>
        
-      <div className="p-4 border-t border-white/10">
+      {/* Added pb-12 here */}
+      <div className="p-4 pb-12 border-t border-white/10">
         <button onClick={onLogout} className="text-red-500 font-mono text-xs hover:underline w-full text-center">
           TERMINATE SESSION (LOGOUT)
         </button>
