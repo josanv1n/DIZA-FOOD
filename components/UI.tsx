@@ -9,7 +9,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 // --- Components ---
 
 export const NeonContainer: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = '' }) => (
-  <div className={`h-screen w-screen bg-neon-dark text-white font-body flex justify-center items-center overflow-hidden relative ${className}`}>
+  // Menggunakan fixed inset-0 dan h-[100dvh] untuk kompatibilitas mobile browser yang lebih baik
+  <div className={`fixed inset-0 w-full h-[100dvh] bg-neon-dark text-white font-body flex justify-center items-center overflow-hidden relative ${className}`}>
     {/* Background Tech Pattern */}
     <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" 
          style={{ 
@@ -26,7 +27,7 @@ export const NeonContainer: React.FC<{ children: React.ReactNode, className?: st
 );
 
 export const Header: React.FC<{ title: string, subtitle?: string, onBack?: () => void }> = ({ title, subtitle, onBack }) => (
-  <header className="px-4 py-4 bg-neon-surface border-b border-slate-700 z-20 shadow-md">
+  <header className="px-4 py-4 bg-neon-surface border-b border-slate-700 z-20 shadow-md shrink-0">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         {onBack && (

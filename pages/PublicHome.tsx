@@ -28,7 +28,7 @@ export const PublicHome: React.FC<Props> = ({ onLoginClick }) => {
     <NeonContainer>
       <Header title="DIZA FOOD" subtitle="Cyber Culinary Experience" />
       
-      <main className="p-4 flex flex-col gap-6 flex-1 overflow-y-auto">
+      <main className="p-4 flex flex-col gap-6 flex-1 overflow-y-auto pb-8">
         {/* Profile Section */}
         <section className="text-center space-y-2">
           <div className="w-24 h-24 mx-auto bg-neon-blue/10 rounded-full border-2 border-neon-blue flex items-center justify-center shadow-neon-blue animate-pulse">
@@ -73,7 +73,7 @@ export const PublicHome: React.FC<Props> = ({ onLoginClick }) => {
         </div>
       </main>
 
-      <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur">
+      <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur shrink-0">
         <NeonButton onClick={onLoginClick} className="w-full">
           SYSTEM ACCESS (LOGIN)
         </NeonButton>
