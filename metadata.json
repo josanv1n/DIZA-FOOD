@@ -1,0 +1,5 @@
+{
+  "name": "DIZA Food Techno POS",
+  "description": "A futuristic Point of Sales application for DIZA Food with role-based access for User, Admin, and Manager.",
+  "requestFramePermissions": []
+}
