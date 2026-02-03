@@ -86,7 +86,8 @@ export default async function handler(req: any, res: any) {
       `);
     }
 
-    // Seed Menu
+    // Seed Menu - Resetting menu to ensure exact names if table was empty, or manually insert if new
+    // Note: In a real app we wouldn't delete, but for this demo setup let's just insert if empty.
     const menuCheck = await client.query('SELECT COUNT(*) FROM menu');
     if (parseInt(menuCheck.rows[0].count) === 0) {
       await client.query(`
@@ -107,7 +108,7 @@ export default async function handler(req: any, res: any) {
     if (parseInt(promoCheck.rows[0].count) === 0) {
       await client.query(`
         INSERT INTO promo (id, content, active) VALUES
-        ('p1', 'PROMO HARI INI: BELI 5 AYAM GEPREK GRATIS ES TEH!', true);
+        ('p1', 'PROMO: BELI 5 AYAM GEPREK GRATIS ES TEH!', true);
       `);
     }
 

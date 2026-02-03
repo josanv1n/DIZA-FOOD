@@ -32,17 +32,15 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
     });
   };
 
-  const removeFromCart = (itemId: string) => {
-    setCart(prev => prev.filter(i => i.id !== itemId));
-  };
-
   const updateQuantity = (itemId: string, delta: number) => {
-    setCart(prev => prev.map(i => {
-      if (i.id === itemId) {
-        return { ...i, quantity: Math.max(1, i.quantity + delta) };
-      }
-      return i;
-    }));
+    setCart(prev => {
+      return prev.map(i => {
+        if (i.id === itemId) {
+          return { ...i, quantity: i.quantity + delta };
+        }
+        return i;
+      }).filter(i => i.quantity > 0);
+    });
   };
 
   // Calculations
@@ -55,7 +53,7 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
   const processTransaction = async () => {
     if (cart.length === 0) return;
     if (paymentMethod === PaymentMethod.CASH && cashVal < finalTotal) {
-      alert("Insufficient Cash!");
+      alert("UANG CASH KURANG!");
       return;
     }
 
@@ -90,43 +88,70 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
     setView('MENU');
   };
 
+  const foodItems = menu.filter(m => m.category === 'MAKANAN');
+  const drinkItems = menu.filter(m => m.category === 'MINUMAN');
+
   // Render Menu View
   if (view === 'MENU') {
     return (
       <NeonContainer>
-        <Header title="POS TERMINAL" subtitle={`OPERATOR: ${user.username}`} />
+        <Header title="KASIR" subtitle={user.username} />
         
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <h3 className="text-neon-green font-techno border-b border-neon-green/30">MENU ITEMS</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {menu.map(item => (
-                <button 
-                  key={item.id}
-                  onClick={() => addToCart(item)}
-                  className="bg-white/5 border border-white/10 p-3 text-left hover:bg-neon-blue/20 hover:border-neon-blue transition-colors group"
-                >
-                  <div className="font-bold group-hover:text-neon-blue">{item.name}</div>
-                  <div className="text-xs text-slate-400 font-mono">Rp {item.price.toLocaleString()}</div>
-                </button>
-              ))}
+        <div className="flex-1 overflow-hidden flex flex-col bg-neon-panel">
+          <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
+            {/* Food Section */}
+            <div>
+              <h3 className="text-neon-pink font-techno text-lg mb-3 border-b border-slate-700">MAKANAN</h3>
+              <div className="grid grid-cols-1 gap-3">
+                {foodItems.map(item => (
+                  <button 
+                    key={item.id}
+                    onClick={() => addToCart(item)}
+                    className="bg-slate-800 p-4 clip-corner flex justify-between items-center active:bg-neon-pink active:text-white transition-colors border-l-4 border-transparent hover:border-neon-pink group"
+                  >
+                    <div className="text-left">
+                      <div className="font-bold text-lg font-body group-hover:text-neon-pink group-active:text-white">{item.name}</div>
+                    </div>
+                    <div className="font-techno font-bold text-slate-400 group-active:text-white">Rp {item.price.toLocaleString()}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Drink Section */}
+            <div>
+              <h3 className="text-neon-blue font-techno text-lg mb-3 border-b border-slate-700">MINUMAN</h3>
+              <div className="grid grid-cols-1 gap-3">
+                {drinkItems.map(item => (
+                  <button 
+                    key={item.id}
+                    onClick={() => addToCart(item)}
+                    className="bg-slate-800 p-4 clip-corner flex justify-between items-center active:bg-neon-blue active:text-black transition-colors border-l-4 border-transparent hover:border-neon-blue group"
+                  >
+                     <div className="text-left">
+                      <div className="font-bold text-lg font-body group-hover:text-neon-blue group-active:text-black">{item.name}</div>
+                    </div>
+                    <div className="font-techno font-bold text-slate-400 group-active:text-black">Rp {item.price.toLocaleString()}</div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Mini Cart Sticky Footer */}
+          {/* Floating Cart Button */}
           {cart.length > 0 && (
-             <div className="p-4 bg-neon-panel border-t border-neon-blue/30 backdrop-blur-lg">
-               <div className="flex justify-between items-center mb-3">
-                 <span className="text-sm font-mono text-slate-400">{cart.reduce((a, b) => a + b.quantity, 0)} ITEMS</span>
-                 <span className="text-xl font-techno text-neon-blue">Rp {subtotal.toLocaleString()}</span>
-               </div>
-               <NeonButton onClick={() => setView('CHECKOUT')} className="w-full">
-                 PROCEED TO PAYMENT
+             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent z-30">
+               <NeonButton onClick={() => setView('CHECKOUT')} className="w-full shadow-2xl animate-pulse">
+                 BAYAR: Rp {subtotal.toLocaleString()} ({cart.reduce((a, b) => a + b.quantity, 0)} Item)
                </NeonButton>
              </div>
           )}
         </div>
-        <button onClick={onLogout} className="absolute top-6 right-4 text-xs text-red-500 font-bold z-50">LOGOUT</button>
+        <button onClick={onLogout} className="absolute top-5 right-4 z-50 text-red-500 hover:text-white">
+           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+           </svg>
+        </button>
       </NeonContainer>
     );
   }
@@ -135,48 +160,48 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
   if (view === 'CHECKOUT') {
     return (
       <NeonContainer>
-        <Header title="PAYMENT" onBack={() => setView('MENU')} />
+        <Header title="PEMBAYARAN" onBack={() => setView('MENU')} />
         
-        <div className="p-4 space-y-4 flex-1 overflow-y-auto">
-          {/* Order Summary */}
-          <NeonCard title="ORDER SUMMARY">
-            <div className="space-y-2 mt-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-              {cart.map(item => (
-                <div key={item.id} className="flex justify-between items-center text-sm border-b border-white/5 pb-1">
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => updateQuantity(item.id, -1)} className="w-5 h-5 bg-red-500/20 text-red-500 flex items-center justify-center rounded">-</button>
-                    <span className="font-mono text-neon-blue">{item.quantity}x</span>
-                    <button onClick={() => updateQuantity(item.id, 1)} className="w-5 h-5 bg-green-500/20 text-green-500 flex items-center justify-center rounded">+</button>
-                    <span>{item.name}</span>
+        <div className="p-4 flex-1 overflow-y-auto">
+          {/* Order List */}
+          <div className="bg-slate-900 rounded p-4 mb-4">
+            {cart.map(item => (
+              <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border border-slate-700 rounded overflow-hidden">
+                    <button onClick={() => updateQuantity(item.id, -1)} className="w-8 h-8 bg-slate-800 text-white flex items-center justify-center hover:bg-red-500">-</button>
+                    <span className="w-8 h-8 flex items-center justify-center bg-black text-neon-blue font-bold">{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.id, 1)} className="w-8 h-8 bg-slate-800 text-white flex items-center justify-center hover:bg-green-500">+</button>
                   </div>
-                  <span>{(item.price * item.quantity).toLocaleString()}</span>
+                  <span className="font-bold">{item.name}</span>
                 </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-2 border-t border-white/20 flex justify-between font-bold text-lg">
+                <span className="font-mono text-slate-400">{(item.price * item.quantity).toLocaleString()}</span>
+              </div>
+            ))}
+            <div className="mt-4 flex justify-between items-center text-xl font-bold text-white border-t border-slate-700 pt-3">
               <span>TOTAL</span>
               <span className="text-neon-blue">Rp {subtotal.toLocaleString()}</span>
             </div>
-          </NeonCard>
+          </div>
 
-          {/* Payment Details */}
+          {/* Form */}
           <div className="space-y-4">
              <NeonInput 
-                label="Discount Amount (Rp)" 
+                label="DISKON (Jika Ada)" 
                 type="number" 
                 value={discount} 
                 onChange={e => setDiscount(e.target.value)} 
                 placeholder="0"
              />
 
-             <div className="flex flex-col gap-1">
-               <label className="text-xs text-neon-blue/70 font-mono uppercase">PAYMENT METHOD</label>
-               <div className="flex gap-2">
+             <div>
+               <label className="text-sm font-bold text-slate-400 font-techno uppercase tracking-wider mb-2 block">METODE BAYAR</label>
+               <div className="grid grid-cols-3 gap-2">
                  {[PaymentMethod.CASH, PaymentMethod.TRANSFER, PaymentMethod.QRIS].map(method => (
                    <button
                     key={method}
                     onClick={() => setPaymentMethod(method)}
-                    className={`flex-1 py-2 text-xs font-bold border ${paymentMethod === method ? 'bg-neon-blue text-black border-neon-blue' : 'bg-transparent border-slate-700 text-slate-500'}`}
+                    className={`py-3 text-sm font-bold clip-corner transition-all ${paymentMethod === method ? 'bg-neon-yellow text-black' : 'bg-slate-800 text-slate-400'}`}
                    >
                      {method}
                    </button>
@@ -186,30 +211,30 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
 
              {paymentMethod === PaymentMethod.CASH ? (
                <NeonInput 
-                  label="Cash Received (Rp)" 
+                  label="UANG DITERIMA" 
                   type="number" 
                   value={cashReceived} 
                   onChange={e => setCashReceived(e.target.value)} 
-                  placeholder="0"
+                  placeholder="Rp 0"
                />
              ) : (
                 <NeonInput 
-                  label="Remark / Ref No." 
+                  label="KETERANGAN (REMARK)" 
                   value={remark} 
                   onChange={e => setRemark(e.target.value)} 
-                  placeholder="Transaction ID..."
+                  placeholder="No. Ref / Nama Pengirim"
                />
              )}
 
-             <div className="bg-black/40 p-3 border border-white/10 rounded">
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Grand Total:</span>
-                  <span className="text-neon-blue font-bold">Rp {finalTotal.toLocaleString()}</span>
+             <div className="bg-slate-800 p-4 border border-slate-700 clip-corner mt-4">
+                <div className="flex justify-between text-lg mb-2">
+                  <span className="text-slate-400">Total Bayar:</span>
+                  <span className="text-white font-bold">Rp {finalTotal.toLocaleString()}</span>
                 </div>
                 {paymentMethod === PaymentMethod.CASH && (
-                  <div className="flex justify-between text-sm">
-                    <span>Change:</span>
-                    <span className={`font-bold ${change < 0 ? 'text-red-500' : 'text-neon-green'}`}>
+                  <div className="flex justify-between text-xl font-bold">
+                    <span className="text-slate-400">KEMBALIAN:</span>
+                    <span className={`${change < 0 ? 'text-red-500' : 'text-neon-yellow'}`}>
                       Rp {change.toLocaleString()}
                     </span>
                   </div>
@@ -218,9 +243,9 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
           </div>
         </div>
 
-        <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur">
-          <NeonButton onClick={processTransaction} className="w-full">
-            EXECUTE PAYMENT
+        <div className="p-4 bg-black border-t border-slate-800">
+          <NeonButton onClick={processTransaction} className="w-full" variant="success">
+            PROSES BAYAR
           </NeonButton>
         </div>
       </NeonContainer>
@@ -230,18 +255,29 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
   // Success View
   return (
     <NeonContainer>
-       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-20 h-20 rounded-full border-4 border-neon-green flex items-center justify-center mb-6 shadow-[0_0_20px_#00ff41]">
-             <svg className="w-10 h-10 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-neon-dark w-full h-full">
+          <div className="w-24 h-24 rounded-full border-4 border-neon-green flex items-center justify-center mb-6 shadow-glow-blue animate-bounce">
+             <svg className="w-12 h-12 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
              </svg>
           </div>
-          <h2 className="text-2xl font-techno text-neon-green mb-2">TRANSACTION COMPLETE</h2>
-          {paymentMethod === PaymentMethod.CASH && (
-            <p className="text-xl mb-6">Change: <span className="text-white font-bold">Rp {lastChange.toLocaleString()}</span></p>
-          )}
-          <NeonButton onClick={reset} className="w-full max-w-xs">
-            NEW ORDER
+          <h2 className="text-3xl font-techno text-neon-green mb-4">TRANSAKSI SUKSES</h2>
+          
+          <div className="bg-slate-900 p-6 rounded w-full mb-8 border border-slate-800">
+            {paymentMethod === PaymentMethod.CASH && (
+              <>
+                <p className="text-slate-400 uppercase text-sm mb-1">Uang Kembalian</p>
+                <p className="text-4xl font-bold text-white mb-4">Rp {lastChange.toLocaleString()}</p>
+              </>
+            )}
+            <div className="flex justify-between text-sm text-slate-500 border-t border-slate-800 pt-4">
+               <span>Total Belanja</span>
+               <span>Rp {finalTotal.toLocaleString()}</span>
+            </div>
+          </div>
+
+          <NeonButton onClick={reset} className="w-full" variant="primary">
+            TRANSAKSI BARU
           </NeonButton>
        </div>
     </NeonContainer>
