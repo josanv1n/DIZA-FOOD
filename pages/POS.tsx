@@ -43,6 +43,11 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
     });
   };
 
+  // Safe formatting helper
+  const formatPrice = (val: number) => {
+    return (Number(val) || 0).toLocaleString('id-ID');
+  };
+
   // Calculations
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + (item.price * item.quantity), 0), [cart]);
   const discountVal = parseInt(discount) || 0;
@@ -113,7 +118,7 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
                     <div className="text-left">
                       <div className="font-bold text-lg font-body group-hover:text-neon-pink group-active:text-white">{item.name}</div>
                     </div>
-                    <div className="font-techno font-bold text-slate-400 group-active:text-white">Rp {item.price.toLocaleString()}</div>
+                    <div className="font-techno font-bold text-slate-400 group-active:text-white">Rp {formatPrice(item.price)}</div>
                   </button>
                 ))}
               </div>
@@ -132,7 +137,7 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
                      <div className="text-left">
                       <div className="font-bold text-lg font-body group-hover:text-neon-blue group-active:text-black">{item.name}</div>
                     </div>
-                    <div className="font-techno font-bold text-slate-400 group-active:text-black">Rp {item.price.toLocaleString()}</div>
+                    <div className="font-techno font-bold text-slate-400 group-active:text-black">Rp {formatPrice(item.price)}</div>
                   </button>
                 ))}
               </div>
@@ -143,7 +148,7 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
           {cart.length > 0 && (
              <div className="absolute bottom-0 left-0 right-0 p-4 pb-24 bg-gradient-to-t from-black via-black to-transparent z-30">
                <NeonButton onClick={() => setView('CHECKOUT')} className="w-full shadow-2xl animate-pulse">
-                 BAYAR: Rp {subtotal.toLocaleString()} ({cart.reduce((a, b) => a + b.quantity, 0)} Item)
+                 BAYAR: Rp {formatPrice(subtotal)} ({cart.reduce((a, b) => a + b.quantity, 0)} Item)
                </NeonButton>
              </div>
           )}
@@ -176,12 +181,12 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
                   </div>
                   <span className="font-bold">{item.name}</span>
                 </div>
-                <span className="font-mono text-slate-400">{(item.price * item.quantity).toLocaleString()}</span>
+                <span className="font-mono text-slate-400">{formatPrice(item.price * item.quantity)}</span>
               </div>
             ))}
             <div className="mt-4 flex justify-between items-center text-xl font-bold text-white border-t border-slate-700 pt-3">
               <span>TOTAL</span>
-              <span className="text-neon-blue">Rp {subtotal.toLocaleString()}</span>
+              <span className="text-neon-blue">Rp {formatPrice(subtotal)}</span>
             </div>
           </div>
 
@@ -230,13 +235,13 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
              <div className="bg-slate-800 p-4 border border-slate-700 clip-corner mt-4">
                 <div className="flex justify-between text-lg mb-2">
                   <span className="text-slate-400">Total Bayar:</span>
-                  <span className="text-white font-bold">Rp {finalTotal.toLocaleString()}</span>
+                  <span className="text-white font-bold">Rp {formatPrice(finalTotal)}</span>
                 </div>
                 {paymentMethod === PaymentMethod.CASH && (
                   <div className="flex justify-between text-xl font-bold">
                     <span className="text-slate-400">KEMBALIAN:</span>
                     <span className={`${change < 0 ? 'text-red-500' : 'text-neon-yellow'}`}>
-                      Rp {change.toLocaleString()}
+                      Rp {formatPrice(change)}
                     </span>
                   </div>
                 )}
@@ -269,12 +274,12 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
             {paymentMethod === PaymentMethod.CASH && (
               <>
                 <p className="text-slate-400 uppercase text-sm mb-1">Uang Kembalian</p>
-                <p className="text-4xl font-bold text-white mb-4">Rp {lastChange.toLocaleString()}</p>
+                <p className="text-4xl font-bold text-white mb-4">Rp {formatPrice(lastChange)}</p>
               </>
             )}
             <div className="flex justify-between text-sm text-slate-500 border-t border-slate-800 pt-4">
                <span>Total Belanja</span>
-               <span>Rp {finalTotal.toLocaleString()}</span>
+               <span>Rp {formatPrice(finalTotal)}</span>
             </div>
           </div>
 

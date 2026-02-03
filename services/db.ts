@@ -26,7 +26,21 @@ class NeonService {
 
   // --- Menu Operations ---
   async getMenu(): Promise<MenuItem[]> {
-    return this.request('getMenu');
+    try {
+      const rawData = await this.request('getMenu');
+      if (!Array.isArray(rawData)) return [];
+      
+      // Safety mapping for menu items
+      return rawData.map((item: any) => ({
+        id: String(item.id),
+        name: String(item.name || 'Unknown Item'),
+        category: item.category || 'MAKANAN',
+        price: Number(item.price) || 0
+      }));
+    } catch (e) {
+      console.error("Failed to map menu", e);
+      return [];
+    }
   }
 
   async addMenu(item: Omit<MenuItem, 'id'>): Promise<MenuItem> {

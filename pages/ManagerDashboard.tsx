@@ -52,7 +52,7 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
     });
   }, [transactions, selectedDate]);
 
-  // Daily Stats with safe number conversion
+  // Daily Stats with safe number conversion and optional chaining
   const dailyRevenue = dailyTransactions.reduce((sum, t) => sum + (Number(t?.finalAmount) || 0), 0);
   const dailyOrders = dailyTransactions.length;
   const cashTotal = dailyTransactions
