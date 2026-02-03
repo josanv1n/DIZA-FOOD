@@ -41,22 +41,20 @@ class NeonService {
   async getTransactions(): Promise<Transaction[]> {
     const rawData = await this.request('getTransactions');
     
-    // CRITICAL FIX: Mapping DB snake_case to Frontend camelCase
-    // Database returns: user_id, total_amount, final_amount, payment_method
-    // Frontend needs: userId, totalAmount, finalAmount, paymentMethod
     if (!Array.isArray(rawData)) return [];
 
+    // Robust mapping: Check for both snake_case (DB) and camelCase (potential API change)
+    // Default to 0 or safe strings to prevent UI crashes
     return rawData.map((row: any) => ({
       id: row.id,
-      // Ensure date is string ISO format for comparison
-      date: new Date(row.date).toISOString(), 
-      userId: row.user_id, // FIX: Map from user_id
-      totalAmount: row.total_amount, // FIX: Map from total_amount
-      discount: row.discount || 0,
-      finalAmount: row.final_amount, // FIX: Map from final_amount
-      paymentMethod: row.payment_method, // FIX: Map from payment_method
-      remark: row.remark,
-      details: [] // Summary view usually doesn't need details, avoiding join complexity for now
+      date: row.date ? new Date(row.date).toISOString() : new Date().toISOString(), 
+      userId: row.user_id || row.userId || 'unknown', 
+      totalAmount: Number(row.total_amount ?? row.totalAmount ?? 0), 
+      discount: Number(row.discount ?? 0),
+      finalAmount: Number(row.final_amount ?? row.finalAmount ?? 0), 
+      paymentMethod: row.payment_method || row.paymentMethod || 'UNKNOWN', 
+      remark: row.remark || '',
+      details: [] 
     }));
   }
 

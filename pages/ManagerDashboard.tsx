@@ -10,9 +10,10 @@ interface Props {
 export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   
-  // FIX: Use Local Date string (YYYY-MM-DD) instead of UTC to avoid showing yesterday's data
+  // Use local date for default selection to ensure today's data is shown correctly
   const [selectedDate, setSelectedDate] = useState(() => {
     const now = new Date();
+    // Adjust for timezone offset to get local YYYY-MM-DD
     const offset = now.getTimezoneOffset() * 60000;
     const localIso = new Date(now.getTime() - offset).toISOString().split('T')[0];
     return localIso;
@@ -37,14 +38,13 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
   const dailyTransactions = useMemo(() => {
     if (!transactions) return [];
     return transactions.filter(t => {
-      // Robust date check
       if (!t.date) return false;
-      // Compare just the YYYY-MM-DD part
+      // Compare YYYY-MM-DD
       return t.date.substring(0, 10) === selectedDate;
     });
   }, [transactions, selectedDate]);
 
-  // Daily Stats Calculation
+  // Daily Stats with safe number conversion
   const dailyRevenue = dailyTransactions.reduce((sum, t) => sum + (Number(t.finalAmount) || 0), 0);
   const dailyOrders = dailyTransactions.length;
   const cashTotal = dailyTransactions
@@ -81,7 +81,7 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
           />
         </div>
 
-        {/* Big Revenue Card - Emphasize the main request */}
+        {/* Big Revenue Card */}
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 border-l-4 border-neon-green clip-corner shadow-lg relative overflow-hidden">
            <div className="absolute right-0 top-0 p-4 opacity-10">
               <svg className="w-24 h-24 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,8 +103,8 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
         <div className="space-y-2">
            <h3 className="text-neon-blue font-mono text-xs uppercase mb-2">Transaction Feed</h3>
            {dailyTransactions.length === 0 && <p className="text-slate-600 text-xs italic">System idle / No data for this date.</p>}
-           {dailyTransactions.slice().reverse().map(t => ( // Show newest first
-             <div key={t.id} className="bg-white/5 p-3 border-l-2 border-slate-600 flex justify-between items-start">
+           {dailyTransactions.slice().reverse().map(t => ( 
+             <div key={t.id || Math.random()} className="bg-white/5 p-3 border-l-2 border-slate-600 flex justify-between items-start">
                 <div>
                    <div className="text-xs text-slate-400 font-mono">
                      {t.date ? new Date(t.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
@@ -113,7 +113,8 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
                    <div className="text-[10px] text-neon-blue">{t.paymentMethod} {t.remark ? `(${t.remark})` : ''}</div>
                 </div>
                 <div className="text-right">
-                   <div className="text-neon-green font-mono">Rp {(t.finalAmount || 0).toLocaleString()}</div>
+                   {/* Safe access to finalAmount with fallback */}
+                   <div className="text-neon-green font-mono">Rp {(Number(t.finalAmount) || 0).toLocaleString()}</div>
                    {t.discount > 0 && <div className="text-[10px] text-red-400">Disc: -{t.discount}</div>}
                 </div>
              </div>
@@ -121,7 +122,6 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
         </div>
       </div>
        
-      {/* Increased padding to pb-24 */}
       <div className="p-4 pb-24 border-t border-white/10">
         <button onClick={onLogout} className="text-red-500 font-mono text-xs hover:underline w-full text-center">
           TERMINATE SESSION (LOGOUT)
