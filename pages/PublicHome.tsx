@@ -73,8 +73,8 @@ export const PublicHome: React.FC<Props> = ({ onLoginClick }) => {
         </div>
       </main>
 
-      {/* Added pb-12 to lift button up */}
-      <div className="p-4 pb-12 border-t border-white/10 bg-black/50 backdrop-blur shrink-0">
+      {/* INCREASED BOTTOM PADDING TO pb-24 (~96px) to fix cut-off on mobile */}
+      <div className="p-4 pb-24 border-t border-white/10 bg-black/50 backdrop-blur shrink-0">
         <NeonButton onClick={onLoginClick} className="w-full">
           SYSTEM ACCESS (LOGIN)
         </NeonButton>

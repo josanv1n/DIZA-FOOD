@@ -133,8 +133,8 @@ export const AdminDashboard: React.FC<Props> = ({ onLogout }) => {
         )}
       </div>
       
-      {/* Added pb-12 here */}
-      <div className="p-4 pb-12 border-t border-white/10">
+      {/* Increased padding to pb-24 */}
+      <div className="p-4 pb-24 border-t border-white/10">
         <button onClick={onLogout} className="text-red-500 font-mono text-xs hover:underline w-full text-center">
           TERMINATE SESSION (LOGOUT)
         </button>

@@ -98,7 +98,8 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
         <Header title="KASIR" subtitle={user.username} />
         
         <div className="flex-1 overflow-hidden flex flex-col bg-neon-panel">
-          <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-32">
+          {/* Increased pb-48 to allow scrolling past the taller floating button area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-48">
             {/* Food Section */}
             <div>
               <h3 className="text-neon-pink font-techno text-lg mb-3 border-b border-slate-700">MAKANAN</h3>
@@ -138,9 +139,9 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* Floating Cart Button - Lifted up with pb-12 */}
+          {/* Floating Cart Button - Increased pb-24 to lift it up */}
           {cart.length > 0 && (
-             <div className="absolute bottom-0 left-0 right-0 p-4 pb-12 bg-gradient-to-t from-black via-black to-transparent z-30">
+             <div className="absolute bottom-0 left-0 right-0 p-4 pb-24 bg-gradient-to-t from-black via-black to-transparent z-30">
                <NeonButton onClick={() => setView('CHECKOUT')} className="w-full shadow-2xl animate-pulse">
                  BAYAR: Rp {subtotal.toLocaleString()} ({cart.reduce((a, b) => a + b.quantity, 0)} Item)
                </NeonButton>
@@ -243,8 +244,8 @@ export const POS: React.FC<Props> = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Added pb-12 to lift button up */}
-        <div className="p-4 pb-12 bg-black border-t border-slate-800">
+        {/* Increased bottom padding to pb-24 */}
+        <div className="p-4 pb-24 bg-black border-t border-slate-800">
           <NeonButton onClick={processTransaction} className="w-full" variant="success">
             PROSES BAYAR
           </NeonButton>
