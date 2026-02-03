@@ -39,7 +39,25 @@ class NeonService {
   }
 
   async getTransactions(): Promise<Transaction[]> {
-    return this.request('getTransactions');
+    const rawData = await this.request('getTransactions');
+    
+    // CRITICAL FIX: Mapping DB snake_case to Frontend camelCase
+    // Database returns: user_id, total_amount, final_amount, payment_method
+    // Frontend needs: userId, totalAmount, finalAmount, paymentMethod
+    if (!Array.isArray(rawData)) return [];
+
+    return rawData.map((row: any) => ({
+      id: row.id,
+      // Ensure date is string ISO format for comparison
+      date: new Date(row.date).toISOString(), 
+      userId: row.user_id, // FIX: Map from user_id
+      totalAmount: row.total_amount, // FIX: Map from total_amount
+      discount: row.discount || 0,
+      finalAmount: row.final_amount, // FIX: Map from final_amount
+      paymentMethod: row.payment_method, // FIX: Map from payment_method
+      remark: row.remark,
+      details: [] // Summary view usually doesn't need details, avoiding join complexity for now
+    }));
   }
 
   // --- Promo Operations ---

@@ -9,7 +9,15 @@ interface Props {
 
 export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  // FIX: Use Local Date string (YYYY-MM-DD) instead of UTC to avoid showing yesterday's data
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    const localIso = new Date(now.getTime() - offset).toISOString().split('T')[0];
+    return localIso;
+  });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,14 +35,24 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
 
   // Filter transactions for selected date
   const dailyTransactions = useMemo(() => {
-    return transactions.filter(t => t.date && t.date.startsWith(selectedDate));
+    if (!transactions) return [];
+    return transactions.filter(t => {
+      // Robust date check
+      if (!t.date) return false;
+      // Compare just the YYYY-MM-DD part
+      return t.date.substring(0, 10) === selectedDate;
+    });
   }, [transactions, selectedDate]);
 
-  // Daily Stats
-  const dailyRevenue = dailyTransactions.reduce((sum, t) => sum + t.finalAmount, 0);
+  // Daily Stats Calculation
+  const dailyRevenue = dailyTransactions.reduce((sum, t) => sum + (Number(t.finalAmount) || 0), 0);
   const dailyOrders = dailyTransactions.length;
-  const cashTotal = dailyTransactions.filter(t => t.paymentMethod === 'CASH').reduce((sum, t) => sum + t.finalAmount, 0);
-  const digitalTotal = dailyTransactions.filter(t => t.paymentMethod !== 'CASH').reduce((sum, t) => sum + t.finalAmount, 0);
+  const cashTotal = dailyTransactions
+    .filter(t => t.paymentMethod === 'CASH')
+    .reduce((sum, t) => sum + (Number(t.finalAmount) || 0), 0);
+  const digitalTotal = dailyTransactions
+    .filter(t => t.paymentMethod !== 'CASH')
+    .reduce((sum, t) => sum + (Number(t.finalAmount) || 0), 0);
 
   if (loading) {
     return (
@@ -84,16 +102,18 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
         {/* Recent Transaction Log */}
         <div className="space-y-2">
            <h3 className="text-neon-blue font-mono text-xs uppercase mb-2">Transaction Feed</h3>
-           {dailyTransactions.length === 0 && <p className="text-slate-600 text-xs italic">System idle...</p>}
+           {dailyTransactions.length === 0 && <p className="text-slate-600 text-xs italic">System idle / No data for this date.</p>}
            {dailyTransactions.slice().reverse().map(t => ( // Show newest first
              <div key={t.id} className="bg-white/5 p-3 border-l-2 border-slate-600 flex justify-between items-start">
                 <div>
-                   <div className="text-xs text-slate-400 font-mono">{t.date ? new Date(t.date).toLocaleTimeString() : '-'}</div>
+                   <div className="text-xs text-slate-400 font-mono">
+                     {t.date ? new Date(t.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
+                   </div>
                    <div className="text-sm font-bold">{t.id}</div>
                    <div className="text-[10px] text-neon-blue">{t.paymentMethod} {t.remark ? `(${t.remark})` : ''}</div>
                 </div>
                 <div className="text-right">
-                   <div className="text-neon-green font-mono">Rp {t.finalAmount.toLocaleString()}</div>
+                   <div className="text-neon-green font-mono">Rp {(t.finalAmount || 0).toLocaleString()}</div>
                    {t.discount > 0 && <div className="text-[10px] text-red-400">Disc: -{t.discount}</div>}
                 </div>
              </div>
