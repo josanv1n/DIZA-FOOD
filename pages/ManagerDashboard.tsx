@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { NeonContainer, Header, NeonCard, StatCard } from '../components/UI';
+import { NeonContainer, Header, StatCard } from '../components/UI';
 import { db } from '../services/db';
 import { Transaction } from '../types';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface Props {
   onLogout: () => void;
@@ -37,21 +36,6 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
   const cashTotal = dailyTransactions.filter(t => t.paymentMethod === 'CASH').reduce((sum, t) => sum + t.finalAmount, 0);
   const digitalTotal = dailyTransactions.filter(t => t.paymentMethod !== 'CASH').reduce((sum, t) => sum + t.finalAmount, 0);
 
-  // Chart Data (Revenue by Hour for selected Date)
-  const chartData = useMemo(() => {
-    const hours = Array.from({ length: 24 }, (_, i) => ({ hour: i, amount: 0 }));
-    dailyTransactions.forEach(t => {
-      if (t.date) {
-        const hour = new Date(t.date).getHours();
-        if (hours[hour]) hours[hour].amount += t.finalAmount;
-      }
-    });
-    return hours.map(h => ({
-      name: `${h.hour}:00`,
-      revenue: h.amount
-    })).filter(h => h.revenue > 0); // Only show hours with sales for cleaner view
-  }, [dailyTransactions]);
-
   if (loading) {
     return (
       <NeonContainer>
@@ -79,38 +63,23 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
           />
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Daily Revenue" value={`Rp ${dailyRevenue.toLocaleString()}`} color="green" />
-          <StatCard label="Total Orders" value={dailyOrders} color="blue" />
-          <StatCard label="Cash Flow" value={`Rp ${cashTotal.toLocaleString()}`} color="pink" />
-          <StatCard label="Digital (QR/TF)" value={`Rp ${digitalTotal.toLocaleString()}`} />
+        {/* Big Revenue Card - Emphasize the main request */}
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 border-l-4 border-neon-green clip-corner shadow-lg relative overflow-hidden">
+           <div className="absolute right-0 top-0 p-4 opacity-10">
+              <svg className="w-24 h-24 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+           </div>
+           <h3 className="text-sm font-techno text-neon-green uppercase tracking-widest mb-1">Total Omset Hari Ini</h3>
+           <div className="text-4xl font-bold font-body text-white">Rp {dailyRevenue.toLocaleString()}</div>
+           <div className="mt-2 text-xs font-mono text-slate-400">Total {dailyOrders} Transaksi</div>
         </div>
 
-        {/* Chart */}
-        <NeonCard title="REVENUE TIMELINE" className="h-64">
-           {chartData.length > 0 ? (
-             <div className="w-full h-full mt-2 -ml-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} tickFormatter={(value) => `${value/1000}k`} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#00f3ff', color: '#fff' }}
-                      itemStyle={{ color: '#00f3ff' }}
-                      cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                    />
-                    <Bar dataKey="revenue" fill="#00f3ff" radius={[2, 2, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-             </div>
-           ) : (
-             <div className="h-full flex items-center justify-center text-slate-500 font-mono text-xs">
-               NO DATA RECORDED FOR THIS PERIOD
-             </div>
-           )}
-        </NeonCard>
+        {/* Detailed Metrics */}
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label="Cash Flow" value={`Rp ${cashTotal.toLocaleString()}`} color="pink" />
+          <StatCard label="Digital (QR/TF)" value={`Rp ${digitalTotal.toLocaleString()}`} color="blue" />
+        </div>
 
         {/* Recent Transaction Log */}
         <div className="space-y-2">
