@@ -29,7 +29,8 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // Extract fetching logic to reusable function
+  const loadData = () => {
     setLoading(true);
     db.getTransactions()
       .then(data => {
@@ -40,6 +41,11 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
         setTransactions([]);
       })
       .finally(() => setLoading(false));
+  };
+
+  // Initial load
+  useEffect(() => {
+    loadData();
   }, []);
 
   // Filter transactions for selected date
@@ -62,7 +68,8 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
     .filter(t => t?.paymentMethod !== 'CASH')
     .reduce((sum, t) => sum + (Number(t?.finalAmount) || 0), 0);
 
-  if (loading) {
+  // Loading state for initial load only, not for refreshes to keep UI stable
+  if (loading && transactions.length === 0) {
     return (
       <NeonContainer>
         <div className="flex flex-col items-center justify-center h-full">
@@ -78,15 +85,30 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
       <Header title="EXECUTIVE DASHBOARD" subtitle="ANALYTICS MODULE" />
       
       <div className="p-4 flex-1 overflow-y-auto space-y-6">
-        {/* Date Filter */}
+        {/* Date Filter & Refresh Control */}
         <div className="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10">
-          <label className="text-xs font-mono text-slate-400">TARGET DATE:</label>
+          <label className="text-xs font-mono text-slate-400 whitespace-nowrap">TARGET DATE:</label>
           <input 
             type="date" 
             value={selectedDate}
             onChange={e => setSelectedDate(e.target.value)}
-            className="bg-transparent text-white font-mono focus:outline-none flex-1"
+            className="bg-transparent text-white font-mono focus:outline-none flex-1 min-w-0"
           />
+          <button 
+            onClick={loadData}
+            disabled={loading}
+            className="bg-neon-blue text-black p-2 rounded hover:bg-cyan-300 disabled:opacity-50 transition-colors flex-shrink-0"
+            title="Refresh Data"
+          >
+            <svg 
+              className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
         </div>
 
         {/* Big Revenue Card */}
