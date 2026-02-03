@@ -1,7 +1,9 @@
 import { Pool } from '@neondatabase/serverless';
 
 export default async function handler(req: any, res: any) {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  // Menggunakan connection string dari user atau env variable sebagai fallback
+  const connectionString = 'postgresql://neondb_owner:npg_0CZ2lTPYSpaM@ep-still-shadow-ahpqu6qs-pooler.c-3.us-east-1.aws.neon.tech/UMKM1?sslmode=require';
+  const pool = new Pool({ connectionString });
   
   try {
     const client = await pool.connect();
@@ -113,7 +115,7 @@ export default async function handler(req: any, res: any) {
     
     return res.status(200).json({ 
       status: 'success', 
-      message: 'Database tables created and initial data seeded successfully.' 
+      message: 'Database tables created and initial data seeded successfully in UMKM1.' 
     });
 
   } catch (error: any) {

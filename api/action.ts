@@ -15,7 +15,9 @@ export default async function handler(req: any, res: any) {
   }
 
   const { action, payload } = req.body;
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  // Menggunakan connection string user
+  const connectionString = 'postgresql://neondb_owner:npg_0CZ2lTPYSpaM@ep-still-shadow-ahpqu6qs-pooler.c-3.us-east-1.aws.neon.tech/UMKM1?sslmode=require';
+  const pool = new Pool({ connectionString });
   
   try {
     const client = await pool.connect();
