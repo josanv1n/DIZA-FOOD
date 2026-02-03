@@ -11,14 +11,24 @@ interface Props {
 export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    db.getTransactions().then(setTransactions);
+    setLoading(true);
+    db.getTransactions()
+      .then(data => {
+        setTransactions(data || []);
+      })
+      .catch(err => {
+        console.error("Failed to load transactions", err);
+        setTransactions([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   // Filter transactions for selected date
   const dailyTransactions = useMemo(() => {
-    return transactions.filter(t => t.date.startsWith(selectedDate));
+    return transactions.filter(t => t.date && t.date.startsWith(selectedDate));
   }, [transactions, selectedDate]);
 
   // Daily Stats
@@ -31,14 +41,27 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
   const chartData = useMemo(() => {
     const hours = Array.from({ length: 24 }, (_, i) => ({ hour: i, amount: 0 }));
     dailyTransactions.forEach(t => {
-      const hour = new Date(t.date).getHours();
-      hours[hour].amount += t.finalAmount;
+      if (t.date) {
+        const hour = new Date(t.date).getHours();
+        if (hours[hour]) hours[hour].amount += t.finalAmount;
+      }
     });
     return hours.map(h => ({
       name: `${h.hour}:00`,
       revenue: h.amount
     })).filter(h => h.revenue > 0); // Only show hours with sales for cleaner view
   }, [dailyTransactions]);
+
+  if (loading) {
+    return (
+      <NeonContainer>
+        <div className="flex flex-col items-center justify-center h-full">
+           <div className="w-12 h-12 border-4 border-neon-blue border-t-transparent rounded-full animate-spin mb-4"></div>
+           <p className="text-neon-blue font-techno tracking-widest animate-pulse">LOADING ANALYTICS...</p>
+        </div>
+      </NeonContainer>
+    );
+  }
 
   return (
     <NeonContainer>
@@ -96,7 +119,7 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
            {dailyTransactions.slice().reverse().map(t => ( // Show newest first
              <div key={t.id} className="bg-white/5 p-3 border-l-2 border-slate-600 flex justify-between items-start">
                 <div>
-                   <div className="text-xs text-slate-400 font-mono">{new Date(t.date).toLocaleTimeString()}</div>
+                   <div className="text-xs text-slate-400 font-mono">{t.date ? new Date(t.date).toLocaleTimeString() : '-'}</div>
                    <div className="text-sm font-bold">{t.id}</div>
                    <div className="text-[10px] text-neon-blue">{t.paymentMethod} {t.remark ? `(${t.remark})` : ''}</div>
                 </div>

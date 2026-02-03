@@ -87,7 +87,6 @@ export default async function handler(req: any, res: any) {
     }
 
     // Seed Menu - Resetting menu to ensure exact names if table was empty, or manually insert if new
-    // Note: In a real app we wouldn't delete, but for this demo setup let's just insert if empty.
     const menuCheck = await client.query('SELECT COUNT(*) FROM menu');
     if (parseInt(menuCheck.rows[0].count) === 0) {
       await client.query(`
@@ -98,7 +97,7 @@ export default async function handler(req: any, res: any) {
         ('4', 'Batagor', 'MAKANAN', 10000),
         ('5', 'Siomay', 'MAKANAN', 10000),
         ('6', 'Ayam Geprek', 'MAKANAN', 10000),
-        ('7', 'Indomie (Tanpa Telur)', 'MAKANAN', 8000),
+        ('7', 'Indomie Rebus/Goreng (Tanpa Telur)', 'MAKANAN', 8000),
         ('8', 'Indomie (Pakai Telur)', 'MAKANAN', 10000);
       `);
     }
