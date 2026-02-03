@@ -1,4 +1,4 @@
-import { MenuItem, Transaction, User, PromoText } from '../types';
+import { MenuItem, Transaction, User, PromoText, PaymentMethod } from '../types';
 
 // API Base URL (Relative path works because frontend and backend are on same domain)
 const API_URL = '/api/action';
@@ -39,23 +39,37 @@ class NeonService {
   }
 
   async getTransactions(): Promise<Transaction[]> {
-    const rawData = await this.request('getTransactions');
-    
-    if (!Array.isArray(rawData)) return [];
+    try {
+      const rawData = await this.request('getTransactions');
+      
+      if (!Array.isArray(rawData)) return [];
 
-    // Robust mapping: Check for both snake_case (DB) and camelCase (potential API change)
-    // Default to 0 or safe strings to prevent UI crashes
-    return rawData.map((row: any) => ({
-      id: row.id,
-      date: row.date ? new Date(row.date).toISOString() : new Date().toISOString(), 
-      userId: row.user_id || row.userId || 'unknown', 
-      totalAmount: Number(row.total_amount ?? row.totalAmount ?? 0), 
-      discount: Number(row.discount ?? 0),
-      finalAmount: Number(row.final_amount ?? row.finalAmount ?? 0), 
-      paymentMethod: row.payment_method || row.paymentMethod || 'UNKNOWN', 
-      remark: row.remark || '',
-      details: [] 
-    }));
+      // Robust mapping: Check for both snake_case (DB) and camelCase
+      // Using explicit checks and fallbacks to 0 to prevent UI crashes
+      return rawData.map((row: any) => {
+        // Safe extraction helper
+        const getNum = (val: any) => {
+          const n = Number(val);
+          return isNaN(n) ? 0 : n;
+        };
+
+        return {
+          id: String(row.id || ''),
+          date: row.date ? new Date(row.date).toISOString() : new Date().toISOString(), 
+          userId: String(row.user_id || row.userId || 'unknown'), 
+          totalAmount: getNum(row.total_amount || row.totalAmount), 
+          discount: getNum(row.discount),
+          // Prioritize snake_case (DB), then camelCase, then 0. explicit undefined check.
+          finalAmount: row.final_amount !== undefined ? getNum(row.final_amount) : getNum(row.finalAmount), 
+          paymentMethod: (row.payment_method || row.paymentMethod || PaymentMethod.CASH) as PaymentMethod, 
+          remark: String(row.remark || ''),
+          details: [] 
+        };
+      });
+    } catch (e) {
+      console.error("Mapping error in getTransactions", e);
+      return [];
+    }
   }
 
   // --- Promo Operations ---

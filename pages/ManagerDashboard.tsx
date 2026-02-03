@@ -7,6 +7,14 @@ interface Props {
   onLogout: () => void;
 }
 
+// Robust currency formatter that handles any input type safely
+const safeCurrency = (value: any): string => {
+  if (value === null || value === undefined) return '0';
+  const num = Number(value);
+  if (isNaN(num)) return '0';
+  return num.toLocaleString('id-ID');
+};
+
 export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   
@@ -25,7 +33,7 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
     setLoading(true);
     db.getTransactions()
       .then(data => {
-        setTransactions(data || []);
+        setTransactions(Array.isArray(data) ? data : []);
       })
       .catch(err => {
         console.error("Failed to load transactions", err);
@@ -36,23 +44,23 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
 
   // Filter transactions for selected date
   const dailyTransactions = useMemo(() => {
-    if (!transactions) return [];
+    if (!Array.isArray(transactions)) return [];
     return transactions.filter(t => {
-      if (!t.date) return false;
+      if (!t || !t.date) return false;
       // Compare YYYY-MM-DD
       return t.date.substring(0, 10) === selectedDate;
     });
   }, [transactions, selectedDate]);
 
   // Daily Stats with safe number conversion
-  const dailyRevenue = dailyTransactions.reduce((sum, t) => sum + (Number(t.finalAmount) || 0), 0);
+  const dailyRevenue = dailyTransactions.reduce((sum, t) => sum + (Number(t?.finalAmount) || 0), 0);
   const dailyOrders = dailyTransactions.length;
   const cashTotal = dailyTransactions
-    .filter(t => t.paymentMethod === 'CASH')
-    .reduce((sum, t) => sum + (Number(t.finalAmount) || 0), 0);
+    .filter(t => t?.paymentMethod === 'CASH')
+    .reduce((sum, t) => sum + (Number(t?.finalAmount) || 0), 0);
   const digitalTotal = dailyTransactions
-    .filter(t => t.paymentMethod !== 'CASH')
-    .reduce((sum, t) => sum + (Number(t.finalAmount) || 0), 0);
+    .filter(t => t?.paymentMethod !== 'CASH')
+    .reduce((sum, t) => sum + (Number(t?.finalAmount) || 0), 0);
 
   if (loading) {
     return (
@@ -89,33 +97,33 @@ export const ManagerDashboard: React.FC<Props> = ({ onLogout }) => {
               </svg>
            </div>
            <h3 className="text-sm font-techno text-neon-green uppercase tracking-widest mb-1">Total Omset Hari Ini</h3>
-           <div className="text-4xl font-bold font-body text-white">Rp {dailyRevenue.toLocaleString()}</div>
+           <div className="text-4xl font-bold font-body text-white">Rp {safeCurrency(dailyRevenue)}</div>
            <div className="mt-2 text-xs font-mono text-slate-400">Total {dailyOrders} Transaksi</div>
         </div>
 
         {/* Detailed Metrics */}
         <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Cash Flow" value={`Rp ${cashTotal.toLocaleString()}`} color="pink" />
-          <StatCard label="Digital (QR/TF)" value={`Rp ${digitalTotal.toLocaleString()}`} color="blue" />
+          <StatCard label="Cash Flow" value={`Rp ${safeCurrency(cashTotal)}`} color="pink" />
+          <StatCard label="Digital (QR/TF)" value={`Rp ${safeCurrency(digitalTotal)}`} color="blue" />
         </div>
 
         {/* Recent Transaction Log */}
         <div className="space-y-2">
            <h3 className="text-neon-blue font-mono text-xs uppercase mb-2">Transaction Feed</h3>
            {dailyTransactions.length === 0 && <p className="text-slate-600 text-xs italic">System idle / No data for this date.</p>}
-           {dailyTransactions.slice().reverse().map(t => ( 
-             <div key={t.id || Math.random()} className="bg-white/5 p-3 border-l-2 border-slate-600 flex justify-between items-start">
+           {dailyTransactions.slice().reverse().map((t, idx) => ( 
+             <div key={t?.id || idx} className="bg-white/5 p-3 border-l-2 border-slate-600 flex justify-between items-start">
                 <div>
                    <div className="text-xs text-slate-400 font-mono">
-                     {t.date ? new Date(t.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
+                     {t?.date ? new Date(t.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
                    </div>
-                   <div className="text-sm font-bold">{t.id}</div>
-                   <div className="text-[10px] text-neon-blue">{t.paymentMethod} {t.remark ? `(${t.remark})` : ''}</div>
+                   <div className="text-sm font-bold">{t?.id || 'ID?'}</div>
+                   <div className="text-[10px] text-neon-blue">{t?.paymentMethod || '-'} {t?.remark ? `(${t.remark})` : ''}</div>
                 </div>
                 <div className="text-right">
-                   {/* Safe access to finalAmount with fallback */}
-                   <div className="text-neon-green font-mono">Rp {(Number(t.finalAmount) || 0).toLocaleString()}</div>
-                   {t.discount > 0 && <div className="text-[10px] text-red-400">Disc: -{t.discount}</div>}
+                   {/* SAFE RENDERING: Uses helper function */}
+                   <div className="text-neon-green font-mono">Rp {safeCurrency(t?.finalAmount)}</div>
+                   {(t?.discount || 0) > 0 && <div className="text-[10px] text-red-400">Disc: -{t.discount}</div>}
                 </div>
              </div>
            ))}

@@ -13,16 +13,26 @@ export const PublicHome: React.FC<Props> = ({ onLoginClick }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const m = await db.getMenu();
-      const p = await db.getPromo();
-      setMenu(m);
-      setPromo(p);
+      try {
+        const m = await db.getMenu();
+        const p = await db.getPromo();
+        setMenu(m || []);
+        setPromo(p);
+      } catch (e) {
+        console.error("Failed to load home data", e);
+        setMenu([]);
+      }
     };
     fetchData();
   }, []);
 
   const foodItems = menu.filter(m => m.category === 'MAKANAN');
   const drinkItems = menu.filter(m => m.category === 'MINUMAN');
+
+  const formatPrice = (price: any) => {
+    const num = Number(price);
+    return isNaN(num) ? '0' : num.toLocaleString();
+  };
 
   return (
     <NeonContainer>
@@ -56,7 +66,7 @@ export const PublicHome: React.FC<Props> = ({ onLoginClick }) => {
             {foodItems.map(item => (
               <div key={item.id} className="flex justify-between items-center bg-white/5 p-3 border-l-2 border-neon-green">
                 <span className="font-body text-lg">{item.name}</span>
-                <span className="font-mono text-neon-green">Rp {item.price.toLocaleString()}</span>
+                <span className="font-mono text-neon-green">Rp {formatPrice(item.price)}</span>
               </div>
             ))}
           </div>
@@ -66,7 +76,7 @@ export const PublicHome: React.FC<Props> = ({ onLoginClick }) => {
             {drinkItems.map(item => (
               <div key={item.id} className="flex justify-between items-center bg-white/5 p-3 border-l-2 border-neon-blue">
                 <span className="font-body text-lg">{item.name}</span>
-                <span className="font-mono text-neon-blue">Rp {item.price.toLocaleString()}</span>
+                <span className="font-mono text-neon-blue">Rp {formatPrice(item.price)}</span>
               </div>
             ))}
           </div>
